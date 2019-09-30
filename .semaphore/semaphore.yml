@@ -1,0 +1,90 @@
+version: v1.0
+name: app pipeline
+agent:
+  machine:
+    type: e1-standard-2
+
+  containers:
+    - name: main
+      image: ninjaskija/se-base-image:latest
+
+  image_pull_secrets:
+    - name: dockerhub
+
+global_job_config:
+  prologue:
+    commands:
+      - checkout
+      - cache restore
+
+blocks:
+  - name: "build dependencies"
+    dependencies: []
+    task:
+      jobs:
+        - name: "ruby deps"
+          commands:
+            - bundle install --path vendor/bundle
+            - cache store
+        - name: "node deps"
+          commands:
+            - npm install
+            - cache store
+      prologue:
+        commands:
+          - cache restore
+
+  - name: "ruby tests"
+    dependencies: ["build dependencies"]
+    task:
+      jobs:
+        - name: "unit tests"
+          commands:
+            - echo "running ruby unit tests"
+            - sleep 2
+        - name: "integration tests" 
+          commands:
+            - echo "running ruby integration tests"
+            - sleep 5
+
+  - name: "nodejs tests"
+    dependencies: ["build dependencies"]
+    task:
+      jobs:
+        - name: "running tests"
+          commands:
+            - echo "running nodejs tests"
+            - sleep 3
+
+  - name: "build website"
+    dependencies: ["nodejs tests","ruby tests"]
+    task:
+      jobs:
+        - name: "building website"
+          commands:
+            - cache restore
+            - mkdir website
+            - echo "<h1>Hello</h1>" >> website/index.html
+            - zip -r website.zip ./website
+            - artifact push workflow website.zip
+
+  - name: "upload website"
+    dependencies: ["build website"]
+    task:
+      jobs:
+        - name: "uploading website"
+          commands:
+            - artifact pull workflow website.zip
+            - unzip website.zip
+            - grep "Hello" website/*
+            - echo "uploading website..."
+            - sleep 4
+
+  - name: "sanity check website"
+    dependencies: ["upload website"]
+    task:
+      jobs:
+        - name: "sanity checks"
+          commands:
+            - echo "sanity checking website"
+            - sleep 2
