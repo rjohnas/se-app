@@ -6,7 +6,7 @@ agent:
 
   containers:
     - name: main
-      image: ninjaskija/se-base-image:latest
+      image: ninjaskija/se-base-image:latest #can this be parameterized?
 
   image_pull_secrets:
     - name: dockerhub
@@ -15,7 +15,7 @@ global_job_config:
   prologue:
     commands:
       - checkout
-      - cache restore
+      - cache restore #restores both npm and ruby cache - no need to be speciffic
 
 blocks:
   - name: "build dependencies"
@@ -63,25 +63,10 @@ blocks:
             - mkdir website
             - echo "<h1>Hello</h1>" >> website/index.html
             - zip -r website.zip ./website
+            #seems that I have issues with "artifact pull workflow" if I dont zip the files; 
+            #i.e "artifact pull workflow website/artifact push workflow website" is not working
             - artifact push workflow website.zip
 
-  - name: "upload website"
-    dependencies: ["build website"]
-    task:
-      jobs:
-        - name: "uploading website"
-          commands:
-            - artifact pull workflow website.zip
-            - unzip website.zip
-            - grep "Hello" website/*
-            - echo "uploading website..."
-            - sleep 4
-
-  - name: "sanity check website"
-    dependencies: ["upload website"]
-    task:
-      jobs:
-        - name: "sanity checks"
-          commands:
-            - echo "sanity checking website"
-            - sleep 2
+promotions:
+  - name: "deployment"
+  - pipeline_file: deployment.yaml

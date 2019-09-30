@@ -1,0 +1,34 @@
+version: v1.0
+name: deployment
+agent:
+  machine:
+    type: e1-standard-2
+
+  containers:
+    - name: main
+      image: ninjaskija/se-base-image:latest #can this be parameterized?
+
+  image_pull_secrets:
+    - name: dockerhub
+
+blocks:
+  - name: "upload website"
+    dependencies: []
+    task:
+      jobs:
+        - name: "uploading website"
+          commands:
+            - artifact pull workflow website.zip
+            - unzip website.zip
+            - grep "Hello" website/*
+            - echo "uploading website..."
+            - sleep 4
+  
+  - name: "sanity check website"
+    dependencies: ["upload website"]
+    task:
+      jobs:
+        - name: "sanity checks"
+          commands:
+            - echo "sanity checking website"
+            - sleep 2
