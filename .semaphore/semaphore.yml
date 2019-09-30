@@ -69,4 +69,4 @@ blocks:
 
 promotions:
   - name: "deployment"
-  - pipeline_file: deployment.yaml
+    pipeline_file: deployment.yml
