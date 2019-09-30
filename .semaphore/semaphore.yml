@@ -30,9 +30,6 @@ blocks:
           commands:
             - npm install
             - cache store
-      prologue:
-        commands:
-          - cache restore
 
   - name: "ruby tests"
     dependencies: ["build dependencies"]
@@ -88,4 +85,3 @@ blocks:
           commands:
             - echo "sanity checking website"
             - sleep 2
-            
