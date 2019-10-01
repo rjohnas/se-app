@@ -15,7 +15,7 @@ global_job_config:
   prologue:
     commands:
       - checkout
-      - cache restore #restores both npm and ruby cache - no need to be speciffic
+      - cache restore #restores both npm and ruby cache - no need to be specific
 
 blocks:
   - name: "build dependencies"
@@ -63,8 +63,9 @@ blocks:
             - mkdir website
             - echo "<h1>Hello</h1>" >> website/index.html
             - zip -r website.zip ./website
-            #seems that I have issues with "artifact pull workflow" if I dont zip the files; 
-            #i.e "artifact pull workflow website/artifact push workflow website" is not working
+            #seems that I have some issues with "artifact pull workflow" if I dont zip the files first;
+            #i.e "artifact push workflow website/artifact pull workflow website" is not retaining the structure
+            #for folders/subfolders/subfiles
             - artifact push workflow website.zip
 
 promotions:
